@@ -4,9 +4,9 @@
 # https://aka.ms/yaml
 
 trigger:
-- none
+- none 
 
-pool:
+pool: 
   vmImage: 'windows-latest'
 
 variables:
@@ -15,26 +15,28 @@ variables:
   solution: '**/RoundTheCode.AzureTestProject.sln'
   project: '**/RoundTheCode.AzureTestProject.csproj'
 
-steps:
+steps: 
 - task: NuGetToolInstaller@1
   name: 'NuGetToolInstaller'
-  displayName: 'NuGet tool installer'
+  displayName: 'NuGet Tool Installer'
 
 - task: NuGetCommand@2
   name: 'NuGetRestore'
-  displayName: 'NuGet restore packages'
+  displayName: 'NuGet Restore'
   inputs:
     command: 'restore'
     restoreSolution: '$(solution)'
     feedsToUse: 'select'
 
 - task: DotNetCoreCLI@2
-  name: 'Tests'
-  displayName: 'Run tests'
+  name: 'Test'
+  displayName: 'Test'
   inputs:
     command: 'test'
     projects: '$(solution)'
     arguments: '--configuration $(BuildConfiguration)'
+
+
 
 - task: DotNetCoreCLI@2
   name: 'Publish'
@@ -43,26 +45,14 @@ steps:
     command: 'publish'
     publishWebProjects: false
     projects: '$(project)'
-    arguments: '--configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+    arguments: '--configuration $(BuildConfiguration) --output $(Build.ArtifcatStagingDirectory)'
     zipAfterPublish: false
 
-stages:
-  - stage: DeployWebsite
-    displayName: 'Deploy website'        
-    pool:
-      vmImage: windows-latest
-    
-    jobs:    
-    - deployment: DeployWebsite
-      displayName: 'Deploy website'
-      environment: 'Production.DAVE'
-      strategy:
-       runOnce:
-         deploy:           
-          steps:
-          - checkout: none
-          
-          - download: 'buildPipeline'
-            name: 'DownloadBuildArtifacts'            
-            displayName: 'Download build artifacts'
-            artifact: 'AzureTestProject'
+
+- task: PublishBuildArtifacts@1
+  name: 'PublishBuildArtifact'
+  displayName: 'PublishBuildArtifact'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'AzureTestProject'
+    publishLocation: 'Container'
